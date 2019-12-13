@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.paint.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.layout.VBox?>
+
+
+<VBox alignment="CENTER" minHeight="600.0" minWidth="600.0" style="-fx-background-color: #fff;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="You" textAlignment="CENTER">
+         <font>
+            <Font name="System Bold" size="41.0" />
+         </font>
+         <VBox.margin>
+            <Insets bottom="10.0" />
+         </VBox.margin>
+      </Text>
+      <Text stroke="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Won" textAlignment="CENTER">
+         <font>
+            <Font name="Arial Bold" size="41.0" />
+         </font>
+      </Text>
+   </children>
+</VBox>
