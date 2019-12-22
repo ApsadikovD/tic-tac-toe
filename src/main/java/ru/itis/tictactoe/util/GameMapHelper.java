@@ -20,4 +20,8 @@ public class GameMapHelper {
         }
         return cell;
     }
+
+    public static boolean isCellFree(int[][] matrix, Cell cell) {
+        return matrix[cell.getX()][cell.getY()] == 0;
+    }
 }

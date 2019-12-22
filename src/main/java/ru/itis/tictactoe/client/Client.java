@@ -1,6 +1,7 @@
 package ru.itis.tictactoe.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.itis.tictactoe.server.command.Request;
 
@@ -13,16 +14,20 @@ import java.util.HashMap;
 
 public class Client {
     private static HashMap<String, LiveServerData> serverDataObserver;
-    private static PrintWriter printWriter;
-    private static BufferedReader bufferedReader;
+    private static PrintWriter writer;
+    private static BufferedReader reader;
     private static ObjectMapper objectMapper;
     private static boolean isFinish;
+    private static String lastResponse;
 
     private Client() {
     }
 
     public static void subscribe(Object observer, LiveServerData onChange) {
         serverDataObserver.put(String.valueOf(observer.hashCode()), onChange);
+        if (lastResponse != null) {
+            onChange.onChange(lastResponse);
+        }
     }
 
     public static void unsubscribe(Object observer) {
@@ -31,7 +36,7 @@ public class Client {
 
     public static void write(Request request) {
         try {
-            printWriter.println(objectMapper.writeValueAsString(request));
+            writer.println(objectMapper.writeValueAsString(request));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -42,22 +47,34 @@ public class Client {
         serverDataObserver = new HashMap<>();
         try {
             Socket socket = new Socket(ip, port);
-            printWriter = new PrintWriter(socket.getOutputStream(), true);
-            bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            writer = new PrintWriter(socket.getOutputStream(), true);
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             new Thread(() -> {
                 try {
                     String line;
-                    while (!isFinish && (line = bufferedReader.readLine()) != null) {
+                    while (!isFinish && (line = reader.readLine()) != null) {
                         String finalLine = line;
-                        serverDataObserver.forEach((k, v) -> v.onChange(finalLine));
+                        lastResponse = line;
+                        if (line.length() != 0) {
+                            serverDataObserver.forEach((k, v) -> v.onChange(finalLine));
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            });
+            }).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static <T> T decodeJson(String json, TypeReference<T> typeReference) {
+        try {
+            return objectMapper.readValue(json, typeReference);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static void finished() {

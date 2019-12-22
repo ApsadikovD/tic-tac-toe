@@ -8,20 +8,12 @@
 <VBox alignment="CENTER" minHeight="600.0" minWidth="600.0" style="-fx-background-color: #fff;"
       xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="You" textAlignment="CENTER">
-            <font>
-                <Font name="System Bold" size="41.0"/>
-            </font>
-            <VBox.margin>
-                <Insets bottom="10.0"/>
-            </VBox.margin>
-        </Text>
-        <Text stroke="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Won" textAlignment="CENTER">
+        <Text fx:id="text" stroke="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER">
             <font>
                 <Font name="Arial Bold" size="41.0"/>
             </font>
         </Text>
-        <Button mnemonicParsing="false"
+        <Button fx:id="main" mnemonicParsing="false"
                 style="-fx-background-color: #fff; -fx-padding: 10 30; -fx-border-width: 1; -fx-border-color: #000;"
                 text="Back to home page" textAlignment="CENTER">
             <VBox.margin>

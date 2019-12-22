@@ -27,9 +27,9 @@ public class LoginScene extends AbstractScene {
         Button login = (Button) root.lookup("#login");
 
         login.setOnMouseClicked(event -> {
-            Request<Login> loginRequest = new Request<>("login", new Login(username.getText()));
+            Request<Login> loginRequest = new Request<>("LOGIN", new Login(username.getText()));
             Client.write(loginRequest);
-            LoginScene.this.openStage(stage, data, GameRoomScene.class);
+            LoginScene.this.openStage(stage, data, MainScene.class);
         });
 
         stage.setTitle(data.get("name").toString());

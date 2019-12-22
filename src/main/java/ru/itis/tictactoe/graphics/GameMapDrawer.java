@@ -1,4 +1,4 @@
-package ru.itis.tictactoe.base;
+package ru.itis.tictactoe.graphics;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;

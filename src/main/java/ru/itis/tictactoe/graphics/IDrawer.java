@@ -1,4 +1,4 @@
-package ru.itis.tictactoe.base;
+package ru.itis.tictactoe.graphics;
 
 public interface IDrawer {
     void drawMap();

@@ -1,11 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.layout.VBox?>
-<VBox alignment="CENTER" minHeight="600.0" minWidth="600.0"
-      xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+<VBox alignment="CENTER" minHeight="600.0" minWidth="600.0" xmlns="http://javafx.com/javafx/8"
+      xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <Canvas height="250.0" width="250.0" fx:id="canvas"/>
+        <Text fx:id="text" strokeType="OUTSIDE" strokeWidth="0.0" text="Expecting a second player">
+            <font>
+                <Font size="18.0"/>
+            </font>
+            <VBox.margin>
+                <Insets bottom="20.0"/>
+            </VBox.margin>
+        </Text>
+        <Canvas fx:id="canvas" height="250.0" width="250.0"/>
+        <Text fx:id="player" strokeType="OUTSIDE" strokeWidth="0.0">
+            <font>
+                <Font size="18.0"/>
+            </font>
+            <VBox.margin>
+                <Insets top="20.0"/>
+            </VBox.margin>
+        </Text>
     </children>
 </VBox>

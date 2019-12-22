@@ -21,6 +21,5 @@ public class App extends Application {
         data.put("name", GameConst.GAME_NAME);
         LoginScene loginScene = new LoginScene(primaryStage, data);
         loginScene.start();
-
     }
 }
