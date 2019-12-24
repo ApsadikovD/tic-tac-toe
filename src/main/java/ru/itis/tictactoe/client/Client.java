@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Client {
@@ -18,15 +19,18 @@ public class Client {
     private static BufferedReader reader;
     private static ObjectMapper objectMapper;
     private static boolean isFinish;
-    private static String lastResponse;
+    private static ArrayList<String> unhandledResponse;
 
     private Client() {
     }
 
     public static void subscribe(Object observer, LiveServerData onChange) {
         serverDataObserver.put(String.valueOf(observer.hashCode()), onChange);
-        if (lastResponse != null) {
-            onChange.onChange(lastResponse);
+        if (unhandledResponse.size() != 0) {
+            for (String unhandledResponse : unhandledResponse) {
+                onChange.onChange(unhandledResponse);
+            }
+            unhandledResponse.clear();
         }
     }
 
@@ -45,6 +49,7 @@ public class Client {
     public static void start(String ip, int port) {
         objectMapper = new ObjectMapper();
         serverDataObserver = new HashMap<>();
+        unhandledResponse = new ArrayList<>();
         try {
             Socket socket = new Socket(ip, port);
             writer = new PrintWriter(socket.getOutputStream(), true);
@@ -54,9 +59,12 @@ public class Client {
                     String line;
                     while (!isFinish && (line = reader.readLine()) != null) {
                         String finalLine = line;
-                        lastResponse = line;
-                        if (line.length() != 0) {
-                            serverDataObserver.forEach((k, v) -> v.onChange(finalLine));
+                        if (serverDataObserver.size() == 0) {
+                            unhandledResponse.add(finalLine);
+                        } else {
+                            if (line.length() != 0) {
+                                serverDataObserver.forEach((k, v) -> v.onChange(finalLine));
+                            }
                         }
                     }
                 } catch (IOException e) {

@@ -47,19 +47,17 @@ public class GameScene extends AbstractScene {
         GameMapDrawer gameMapDrawer = new GameMapDrawer(context);
         gameMapDrawer.drawMap();
 
-        RoomInfo roomInfo = (RoomInfo) data.get("ROOM_INFO");
-        if (roomInfo.getGameStatus().equals("READY")) {
-            text.setText("You play with " + roomInfo.getEnemy());
-        }
-
         Client.subscribe(this, str -> {
             Response response = Client.decodeJson(str, new TypeReference<>() {
             });
             if (response.getHeader().equals("ROOM_INFO")) {
                 Platform.runLater(() -> {
-                    String enemy = Client.decodeJson(str, new TypeReference<Response<RoomInfo>>() {
-                    }).getData().getEnemy();
-                    if (enemy != null) text.setText("You play with " + enemy);
+                    RoomInfo roomInfo = Client.decodeJson(str, new TypeReference<Response<RoomInfo>>() {
+                    }).getData();
+                    if (roomInfo.getGameStatus().equals("READY")) {
+                        text.setText("You play with " + roomInfo.getEnemy());
+
+                    }
                 });
             } else if (response.getHeader().equals("NEXT_MOVE")) {
                 Platform.runLater(() -> {
@@ -72,7 +70,7 @@ public class GameScene extends AbstractScene {
                 Platform.runLater(() -> {
                     matrix[move.getCell().getX()][move.getCell().getY()] = 1;
                     gameMapDrawer.drawImage(!first.get() ? "cross.png" : "zero.png",
-                            move.getCell().getX(), move.getCell().getY());
+                            move.getCell().getY(), move.getCell().getX());
                 });
             } else if (response.getHeader().equals("FIRST")) {
                 first.set(true);
@@ -82,6 +80,7 @@ public class GameScene extends AbstractScene {
                 });
             } else if (response.getHeader().equals("SECOND")) {
                 first.set(false);
+                playerMove.setText("Expect the opponent's move");
             } else if (response.getHeader().equals("DRAW")) {
                 Platform.runLater(() -> {
                     data.put("text", "Draw");
@@ -106,9 +105,9 @@ public class GameScene extends AbstractScene {
         canvas.setOnMouseClicked(event -> {
             if (!mapDisable.get()) {
                 Cell cell = GameMapHelper.defineCell(event.getX(), event.getY());
-                if (GameMapHelper.isCellFree(matrix, cell)) {
+                if (GameMapHelper.isCellEmpty(matrix, cell)) {
                     matrix[cell.getX()][cell.getY()] = 1;
-                    gameMapDrawer.drawImage(first.get() ? "cross.png" : "zero.png", cell.getX(), cell.getY());
+                    gameMapDrawer.drawImage(first.get() ? "cross.png" : "zero.png", cell.getY(), cell.getX());
                     Client.write(new Request<>("MOVE", new Move(cell)));
                     playerMove.setText("Expect the opponent's move");
                     mapDisable.set(true);

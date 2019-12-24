@@ -13,6 +13,10 @@ public class Response<T> {
         this.data = data;
     }
 
+    public Response(String header) {
+        this.header = header;
+    }
+
     public String getHeader() {
         return header;
     }

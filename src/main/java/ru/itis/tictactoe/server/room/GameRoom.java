@@ -24,8 +24,8 @@ public class GameRoom {
         }
     }
 
-    public boolean isCellFree(Cell cell) {
-        return gameLogic.isCellFree(cell);
+    public boolean isCellEmpty(Cell cell) {
+        return gameLogic.isCellEmpty(cell);
     }
 
     public void join(Player player) {

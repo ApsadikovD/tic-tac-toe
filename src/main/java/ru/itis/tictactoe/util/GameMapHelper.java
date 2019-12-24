@@ -7,8 +7,8 @@ import static ru.itis.tictactoe.util.GameConst.CELL_SIZE;
 public class GameMapHelper {
     public static Cell defineCell(double x, double y) {
         Cell cell = new Cell();
-        cell.setX(defineCellByCoordinate(x));
-        cell.setY(defineCellByCoordinate(y));
+        cell.setX(defineCellByCoordinate(y));
+        cell.setY(defineCellByCoordinate(x));
         return cell;
     }
 
@@ -21,7 +21,7 @@ public class GameMapHelper {
         return cell;
     }
 
-    public static boolean isCellFree(int[][] matrix, Cell cell) {
+    public static boolean isCellEmpty(int[][] matrix, Cell cell) {
         return matrix[cell.getX()][cell.getY()] == 0;
     }
 }

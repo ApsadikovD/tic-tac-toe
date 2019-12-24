@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.itis.tictactoe.model.Cell;
 import ru.itis.tictactoe.server.command.*;
+import ru.itis.tictactoe.server.player.ComputerPlayer;
 import ru.itis.tictactoe.server.player.Player;
 import ru.itis.tictactoe.server.player.RealPlayer;
 import ru.itis.tictactoe.server.room.GameRoom;
@@ -58,34 +59,62 @@ public class ClientThread extends Thread {
                         break;
                     case "NEW_GAME":
                         if (Server.getGameRoomMap().get(player) != null) return;
+
+                        Request<NewGame> newGame = objectMapper.readValue(line, new TypeReference<Request<NewGame>>() {
+                        });
+
                         Optional<Map.Entry<Player, GameRoom>> gameRoomEntry = Server.getGameRoomMap().entrySet().stream()
                                 .filter(o -> !o.getValue().isStart()).findFirst();
+
                         if (!gameRoomEntry.isPresent()) {
                             GameRoom gameRoom = new GameRoom();
                             gameRoom.join(player);
                             Server.getGameRoomMap().put(player, gameRoom);
 
-                            write(new Response<>("ROOM_INFO", new RoomInfo("WAIT", null)));
+                            if (newGame.getPayload().getGameType().equals("COMPUTER_PLAYER")) {
+                                ComputerPlayer computerPlayer = new ComputerPlayer();
+                                gameRoom.join(computerPlayer);
+
+                                write(new Response<>("ROOM_INFO",
+                                        new RoomInfo("READY", computerPlayer.getName())));
+
+                                if (gameRoom.getFirstPlayer().equals(player)) {
+                                    write(new Response<>("FIRST"));
+                                } else {
+                                    computerPlayer.setComputerFirstPlayer(true);
+                                    Cell computerStep = computerPlayer.getNextStep();
+                                    write(new Response<>("SECOND"));
+                                    write(new Response<>("ENEMY_MOVE", new Move(computerStep)));
+                                    write(new Response<>("NEXT_MOVE"));
+
+                                    gameRoom.nextStep(gameRoom.getFirstPlayer(), computerStep);
+                                    computerPlayer.setCell(computerStep);
+                                }
+                            } else {
+                                write(new Response<>("ROOM_INFO", new RoomInfo("WAIT", null)));
+                            }
                         } else {
                             GameRoom gameRoom = gameRoomEntry.get().getValue();
                             gameRoom.join(player);
+                            Server.getGameRoomMap().put(player, gameRoom);
+
                             Player enemy = gameRoom.getFirstPlayer().equals(player)
                                     ? gameRoom.getSecondPlayer() : gameRoom.getFirstPlayer();
-                            write(new Response<>("ROOM_INFO", new RoomInfo("READY", enemy.getName())));
-
                             ClientThread enemyClient = Server.getClientList().stream()
                                     .filter(client -> client.getPlayer().equals(enemy)).findFirst().get();
+
+                            write(new Response<>("ROOM_INFO", new RoomInfo("READY", enemy.getName())));
+
                             enemyClient.write(
                                     new Response<>("ROOM_INFO", new RoomInfo("READY", player.getName())));
 
                             if (gameRoom.getFirstPlayer().equals(player)) {
-                                write(new Response<>("FIRST", null));
-                                enemyClient.write(new Response<>("SECOND", null));
+                                write(new Response<>("FIRST"));
+                                enemyClient.write(new Response<>("SECOND"));
                             } else {
-                                enemyClient.write(new Response<>("FIRST", null));
-                                write(new Response<>("SECOND", null));
+                                enemyClient.write(new Response<>("FIRST"));
+                                write(new Response<>("SECOND"));
                             }
-                            Server.getGameRoomMap().put(player, gameRoom);
                         }
                         break;
                     case "MOVE":
@@ -93,26 +122,53 @@ public class ClientThread extends Thread {
                         });
                         Cell cell = move.getPayload().getCell();
                         GameRoom gameRoom = Server.getGameRoomMap().get(player);
-                        if (gameRoom.isCellFree(cell)) {
+                        if (gameRoom.isCellEmpty(cell)) {
                             int res = gameRoom.nextStep(player, cell);
+
 
                             Player enemy = gameRoom.getFirstPlayer().equals(player)
                                     ? gameRoom.getSecondPlayer() : gameRoom.getFirstPlayer();
-                            ClientThread enemyClient = Server.getClientList().stream()
-                                    .filter(client -> client.getPlayer().equals(enemy)).findFirst().get();
-                            if (res == 0) {
-                                enemyClient.write(new Response<>("ENEMY_MOVE", new Move(cell)));
-                                enemyClient.write(new Response<>("NEXT_MOVE", null));
-                            } else if (res == -1) {
-                                enemyClient.write(new Response<>("DRAW", new Move(cell)));
-                                write(new Response<>("DRAW", null));
-                                Server.getGameRoomMap().remove(player);
-                                Server.getGameRoomMap().remove(enemy);
+                            if (enemy instanceof ComputerPlayer) {
+                                if (res == 0) {
+                                    ((ComputerPlayer) enemy).setCell(cell);
+                                    Cell computerStep = ((ComputerPlayer) enemy).getNextStep();
+                                    res = gameRoom.nextStep(enemy, computerStep);
+                                    ((ComputerPlayer) enemy).setCell(computerStep);
+                                    if (res == 0) {
+                                        write(new Response<>("ENEMY_MOVE", new Move(computerStep)));
+                                        write(new Response<>("NEXT_MOVE"));
+                                    } else if (res == -1) {
+                                        write(new Response<>("DRAW", new Move(computerStep)));
+                                        Server.getGameRoomMap().remove(player);
+                                        Server.getGameRoomMap().remove(enemy);
+                                    } else {
+                                        write(new Response<>("LOSE", new Move(computerStep)));
+                                    }
+                                } else if (res == -1) {
+                                    write(new Response<>("DRAW"));
+                                    Server.getGameRoomMap().remove(player);
+                                } else {
+                                    write(new Response<>("WIN"));
+                                    Server.getGameRoomMap().remove(player);
+                                    Server.getGameRoomMap().remove(enemy);
+                                }
                             } else {
-                                enemyClient.write(new Response<>("LOSE", null));
-                                write(new Response<>("WIN", null));
-                                Server.getGameRoomMap().remove(player);
-                                Server.getGameRoomMap().remove(enemy);
+                                ClientThread enemyClient = Server.getClientList().stream()
+                                        .filter(client -> client.getPlayer().equals(enemy)).findFirst().get();
+                                if (res == 0) {
+                                    enemyClient.write(new Response<>("ENEMY_MOVE", new Move(cell)));
+                                    enemyClient.write(new Response<>("NEXT_MOVE"));
+                                } else if (res == -1) {
+                                    enemyClient.write(new Response<>("DRAW", new Move(cell)));
+                                    write(new Response<>("DRAW"));
+                                    Server.getGameRoomMap().remove(player);
+                                    Server.getGameRoomMap().remove(enemy);
+                                } else {
+                                    enemyClient.write(new Response<>("LOSE", new Move(cell)));
+                                    write(new Response<>("WIN"));
+                                    Server.getGameRoomMap().remove(player);
+                                    Server.getGameRoomMap().remove(enemy);
+                                }
                             }
                         }
                         break;

@@ -3,6 +3,9 @@ package ru.itis.tictactoe.server.command;
 public class NewGame {
     private String gameType;
 
+    public NewGame() {
+    }
+
     public NewGame(String gameType) {
         this.gameType = gameType;
     }
