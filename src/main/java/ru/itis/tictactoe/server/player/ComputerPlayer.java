@@ -29,12 +29,17 @@ public class ComputerPlayer extends Player {
             return getRandomCell();
         }
 
+        Line winLine = getWinLine(flag, enemyFlag, 4);
+        if (winLine != null) {
+            return getFirstFreeCellOnLine(winLine);
+        }
+
         Line enemyWinLine = getWinLine(enemyFlag, flag, 4);
         if (enemyWinLine != null) {
             return getFirstFreeCellOnLine(enemyWinLine);
         }
 
-        Line winLine = getWinLine(flag, enemyFlag, 0);
+        winLine = getWinLine(flag, enemyFlag, 0);
         if (winLine != null) {
             return getFirstFreeCellOnLine(winLine);
         }

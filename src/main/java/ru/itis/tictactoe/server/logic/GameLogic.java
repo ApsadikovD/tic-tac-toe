@@ -27,7 +27,7 @@ public class GameLogic {
 
         if (isWin(1) || isWin(-1)) {
             return 1;
-        } else if (!isDraw()) {
+        } else if (isDraw()) {
             return -1;
         } else {
             return 0;
@@ -38,11 +38,11 @@ public class GameLogic {
         for (int i = 0; i < LAYER_SIZE; i++) {
             for (int j = 0; j < LAYER_SIZE; j++) {
                 if (matrix[i][j] == 0) {
-                    return true;
+                    return false;
                 }
             }
         }
-        return false;
+        return true;
     }
 
     public boolean isCellEmpty(Cell cell) {

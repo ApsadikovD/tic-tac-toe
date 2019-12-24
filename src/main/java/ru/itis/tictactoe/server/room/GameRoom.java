@@ -30,7 +30,7 @@ public class GameRoom {
 
     public void join(Player player) {
         if (isStart) {
-            throw new IllegalReceiveException("This game is already start");
+            throw new IllegalArgumentException("This game is already start");
         }
         if (firstPlayer == null && secondPlayer == null) {
             if (Math.random() < 0.5) {
